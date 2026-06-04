@@ -1,6 +1,7 @@
 from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery
 from aiogram.exceptions import TelegramForbiddenError
+from aiogram.fsm.context import FSMContext
 
 from database.db import (
     get_user, update_user, find_partner,
