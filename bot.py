@@ -45,8 +45,8 @@ async def main():
     dp = Dispatcher(storage=MemoryStorage())
 
     # ── Middleware ────────────────────────────────────────────
-    #dp.message.middleware(SubscriptionMiddleware())
-    #dp.callback_query.middleware(SubscriptionMiddleware())
+    dp.message.middleware(SubscriptionMiddleware())
+    dp.callback_query.middleware(SubscriptionMiddleware())
 
     # ── Router larni ulash ────────────────────────────────────
     # Tartibi muhim: admin → premium → onboarding → search
