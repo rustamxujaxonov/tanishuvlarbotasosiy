@@ -10,6 +10,8 @@ from keyboards.buttons import subscribe_keyboard
 
 
 class SubscriptionMiddleware(BaseMiddleware):
+    """Majburiy obuna middleware"""
+
     EXEMPT_COMMANDS = {"/start", "/admin"}
     EXEMPT_CALLBACKS = {"check_subscription"}
 
@@ -23,25 +25,27 @@ class SubscriptionMiddleware(BaseMiddleware):
         if not bot:
             return await handler(event, data)
 
-        user_id = None
+        # Foydalanuvchi ID sini olish
         if isinstance(event, Message):
             user_id = event.from_user.id
-            if event.text and any(event.text.startswith(cmd) for cmd in self.EXEMPT_COMMANDS):
+            text = event.text or ""
+            if text.startswith(tuple(self.EXEMPT_COMMANDS)):
                 return await handler(event, data)
         elif isinstance(event, CallbackQuery):
             user_id = event.from_user.id
-            if event.data and any(event.data.startswith(cb) for cb in self.EXEMPT_CALLBACKS):
+            if event.data and event.data.startswith(tuple(self.EXEMPT_CALLBACKS)):
                 return await handler(event, data)
-
-        if user_id is None:
+        else:
             return await handler(event, data)
 
-        # Ro'yxatdan o'tmagan foydalanuvchilarga middleware ta'sir qilmasin
+        # ================== MUHIM QISM ==================
+        # Ro'yxatdan o'tmaganlarga middleware ta'sir qilmaydi
         user = await get_user(user_id)
         if not user or not user.is_registered:
             return await handler(event, data)
+        # ================================================
 
-        # Ro'yxatdan o'tganlarni tekshiramiz
+        # Ro'yxatdan o'tganlarni faqat obunani tekshiramiz
         is_subscribed = await self._check_subscription(bot, user_id)
 
         if not is_subscribed:
@@ -52,10 +56,14 @@ class SubscriptionMiddleware(BaseMiddleware):
             if isinstance(event, Message):
                 await event.answer(text, reply_markup=subscribe_keyboard(), parse_mode="HTML")
             elif isinstance(event, CallbackQuery):
-                await event.message.answer(text, reply_markup=subscribe_keyboard(), parse_mode="HTML")
+                try:
+                    await event.message.edit_text(text, reply_markup=subscribe_keyboard(), parse_mode="HTML")
+                except:
+                    await event.message.answer(text, reply_markup=subscribe_keyboard(), parse_mode="HTML")
                 await event.answer()
-            return
+            return  # Bloklaymiz
 
+        # Obuna bor — davom ettiramiz
         return await handler(event, data)
 
     @staticmethod
@@ -64,5 +72,5 @@ class SubscriptionMiddleware(BaseMiddleware):
             member = await bot.get_chat_member(chat_id=CHANNEL_ID, user_id=user_id)
             return member.status not in ("left", "kicked", "restricted")
         except Exception:
-            # Kanal muammosi bo'lsa yoki bot admin bo'lmasa — vaqtinchalik o'tkazib yuboramiz
+            # Kanal muammosi bo'lsa, vaqtinchalik ruxsat beramiz
             return True
