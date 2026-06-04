@@ -79,8 +79,8 @@ async def start_search(message: Message, gender_filter: GenderEnum = None):
 
 
 @router.message(F.text == "🔍 Muloqotchi qidirish")
-async def search_random(message: Message, state: FSMContext):
-    await state.clear() # Muhim: barcha eski holatlarni o'chiramiz
+async def search_random(message: Message):
+    """Oddiy qidiruv"""
     if not await ensure_registered(message):
         return
     await start_search(message, gender_filter=None)
