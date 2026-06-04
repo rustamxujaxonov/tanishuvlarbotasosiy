@@ -80,10 +80,16 @@ async def onboarding_handler(message: Message):
     user_id = message.from_user.id
     user = await get_user(user_id)
 
+    # Ro'yxatdan o'tgan foydalanuvchilar bu handlerni o'tkazib yuborishi kerak
     if not user or user.is_registered:
-        return  # Ro'yxatdan o'tgan foydalanuvchi boshqa handlerga o'tadi
+        return  
 
+    # Onboarding jarayonida bo'lsa (onboarding_step > 0)
     step = user.onboarding_step
+    if step == 0:
+        return
+
+    # ... qolgan kod o'zgarmaydi ...
 
     # ── Qadam 1: Ism ──────────────────────────────────────────
     if step == 1:
