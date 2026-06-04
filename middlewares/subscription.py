@@ -16,6 +16,7 @@ class SubscriptionMiddleware(BaseMiddleware):
 
     EXEMPT_COMMANDS = {"/start", "/admin"}
     EXEMPT_CALLBACKS = {"check_subscription"}
+    EXEMPT_STATES = True  # yoki onboarding_step tekshirish
 
     async def __call__(
         self,
