@@ -5,18 +5,13 @@ from aiogram.types import TelegramObject, Message, CallbackQuery
 from aiogram.exceptions import TelegramBadRequest
 
 from config import CHANNEL_ID
+from database.db import get_user
 from keyboards.buttons import subscribe_keyboard
 
 
 class SubscriptionMiddleware(BaseMiddleware):
-    """
-    Har bir so'rovdan oldin kanalga a'zolikni tekshiradi.
-    /start komandasi va a'zolikni tekshirish callbacki bundan mustasno.
-    """
-
     EXEMPT_COMMANDS = {"/start", "/admin"}
     EXEMPT_CALLBACKS = {"check_subscription"}
-    EXEMPT_STATES = True  # yoki onboarding_step tekshirish
 
     async def __call__(
         self,
@@ -24,27 +19,30 @@ class SubscriptionMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
-        # Foydalanuvchi va bot obyektlarini olamiz
         bot = data.get("bot")
-        user = None
+        if not bot:
+            return await handler(event, data)
 
+        user_id = None
         if isinstance(event, Message):
-            user = event.from_user
-            # Mustasno komandalar
+            user_id = event.from_user.id
             if event.text and any(event.text.startswith(cmd) for cmd in self.EXEMPT_COMMANDS):
                 return await handler(event, data)
-
         elif isinstance(event, CallbackQuery):
-            user = event.from_user
-            # Mustasno callbacklar
+            user_id = event.from_user.id
             if event.data and any(event.data.startswith(cb) for cb in self.EXEMPT_CALLBACKS):
                 return await handler(event, data)
 
-        if user is None or bot is None:
+        if user_id is None:
             return await handler(event, data)
 
-        # Kanalga a'zolikni tekshiramiz
-        is_subscribed = await self._check_subscription(bot, user.id)
+        # Ro'yxatdan o'tmagan foydalanuvchilarga middleware ta'sir qilmasin
+        user = await get_user(user_id)
+        if not user or not user.is_registered:
+            return await handler(event, data)
+
+        # Ro'yxatdan o'tganlarni tekshiramiz
+        is_subscribed = await self._check_subscription(bot, user_id)
 
         if not is_subscribed:
             text = (
@@ -56,19 +54,15 @@ class SubscriptionMiddleware(BaseMiddleware):
             elif isinstance(event, CallbackQuery):
                 await event.message.answer(text, reply_markup=subscribe_keyboard(), parse_mode="HTML")
                 await event.answer()
-            return  # Handlerni ishga tushirmaymiz
+            return
 
         return await handler(event, data)
 
     @staticmethod
     async def _check_subscription(bot, user_id: int) -> bool:
         try:
-            from config import CHANNEL_ID
             member = await bot.get_chat_member(chat_id=CHANNEL_ID, user_id=user_id)
-            # member.status 'left', 'kicked' yoki 'restricted' bo'lsa False qaytaradi
-            return member.status not in ("left", "kicked")
-        except Exception as e:
-            # SHU YERGA E'TIBOR BERING:
-            # Agar bu yerda xato chiqsa, bot konsolda ko'rsatishi kerak
-            print(f"Kanalni tekshirishda KRITIK XATO: {e}")
-            return False # Agar tekshira olmasa, foydalanuvchini bloklab turadi
+            return member.status not in ("left", "kicked", "restricted")
+        except Exception:
+            # Kanal muammosi bo'lsa yoki bot admin bo'lmasa — vaqtinchalik o'tkazib yuboramiz
+            return True
