@@ -62,12 +62,12 @@ class SubscriptionMiddleware(BaseMiddleware):
     @staticmethod
     async def _check_subscription(bot, user_id: int) -> bool:
         try:
-            # CHANNEL_ID ni to'g'ri chaqirish uchun config'dan import qiling
             from config import CHANNEL_ID
             member = await bot.get_chat_member(chat_id=CHANNEL_ID, user_id=user_id)
+            # member.status 'left', 'kicked' yoki 'restricted' bo'lsa False qaytaradi
             return member.status not in ("left", "kicked")
         except Exception as e:
-            # Xatolik bo'lsa konsolga yozamiz
-            print(f"Obunani tekshirishda xatolik: {e}")
-            # Agar tekshira olmasa, foydalanuvchini bloklamaslik uchun True qaytaring (test uchun)
-            return True
+            # SHU YERGA E'TIBOR BERING:
+            # Agar bu yerda xato chiqsa, bot konsolda ko'rsatishi kerak
+            print(f"Kanalni tekshirishda KRITIK XATO: {e}")
+            return False # Agar tekshira olmasa, foydalanuvchini bloklab turadi
