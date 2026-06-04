@@ -80,15 +80,15 @@ async def onboarding_handler(message: Message):
     user_id = message.from_user.id
     user = await get_user(user_id)
 
-    # Ro'yxatdan o'tgan yoki onboardingda bo'lmaganlarni o'tkazib yuboramiz
+    # Ro'yxatdan o'tgan foydalanuvchilar uchun bu handler ishlamasligi kerak!
     if not user or user.is_registered or user.onboarding_step == 0:
-        return
+        return   # <--- Eng muhim qator
 
+    # Onboarding jarayonida bo'lsa davom ettiramiz
     step = user.onboarding_step
 
-    # Qolgan kod o'zgarmaydi (if step == 1, elif step == 2 ... )
+    # ── Qadam 1: Ism ──────────────────────────────────────────
     if step == 1:
-        # ... hozirgi kodingiz ...
         name = message.text.strip()
         if len(name) < 2 or len(name) > 50:
             await message.answer("❌ Ism 2-50 ta harf orasida bo'lishi kerak. Qaytadan kiriting:")
