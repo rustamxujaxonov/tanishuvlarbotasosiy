@@ -1,10 +1,6 @@
 """
 Anonim Tanishuvlar Boti
-=======================
-Asosiy entry point. Bot ishga tushiriladi va barcha
-handler/middleware larni ro'yxatdan o'tkazadi.
 """
-
 import asyncio
 import logging
 import sys
@@ -16,13 +12,11 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from config import BOT_TOKEN
 from database.db import init_db
-from middlewares.subscription import SubscriptionMiddleware
 
-# ─── Handlerlar ───────────────────────────────────────────────
-from handlers import onboarding, search, premium, admin
+# Handlers
+from handlers import admin, onboarding, premium, search
 
-
-# ─── Logging sozlash ──────────────────────────────────────────
+# Logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -33,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 async def main():
     if not BOT_TOKEN:
-        logger.error("BOT_TOKEN muhit o'zgaruvchisi topilmadi!")
+        logger.error("BOT_TOKEN topilmadi!")
         sys.exit(1)
 
     bot = Bot(
@@ -42,25 +36,21 @@ async def main():
     )
     dp = Dispatcher(storage=MemoryStorage())
 
-    # Middleware
-    dp.message.middleware(SubscriptionMiddleware())
-    dp.callback_query.middleware(SubscriptionMiddleware())
+    # Middleware ni vaqtinchalik o'chirib turamiz
+    # dp.message.middleware(SubscriptionMiddleware())
+    # dp.callback_query.middleware(SubscriptionMiddleware())
 
-    # Routerlar
+    # ================== ROUTER TARTIBI ==================
     dp.include_router(admin.router)
     dp.include_router(onboarding.router)
     dp.include_router(premium.router)
     dp.include_router(search.router)
 
-    # DB
     logger.info("Ma'lumotlar bazasi tayyorlanmoqda...")
     await init_db()
     logger.info("DB tayyor.")
 
-    # Webhook ni tozalash (ikkita marta)
     logger.info("Bot ishga tushmoqda...")
-    await bot.delete_webhook(drop_pending_updates=True)
-    await asyncio.sleep(1)  # qo'shimcha kutish
     await bot.delete_webhook(drop_pending_updates=True)
 
     try:
