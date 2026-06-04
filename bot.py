@@ -45,15 +45,16 @@ async def main():
     dp = Dispatcher(storage=MemoryStorage())
 
     # ── Middleware ────────────────────────────────────────────
-    #dp.message.middleware(SubscriptionMiddleware())
-    #dp.callback_query.middleware(SubscriptionMiddleware())
+    dp.message.middleware(SubscriptionMiddleware())
+    dp.callback_query.middleware(SubscriptionMiddleware())
 
     # ── Router larni ulash ────────────────────────────────────
     # Tartibi muhim: admin → premium → onboarding → search
-    dp.include_router(search.router)
-    dp.include_router(onboarding.router)
-    dp.include_router(premium.router)
-    dp.include_router(admin.router)
+    # ── Router larni ulash (eng to'g'ri tartib) ──────────
+    dp.include_router(onboarding.router) # /start va registratsiya birinchi bo'lishi kerak
+    dp.include_router(search.router)     # Qidiruv
+    dp.include_router(premium.router)    # Premium
+    dp.include_router(admin.router)      # Admin
     # ── Ma'lumotlar bazasini ishga tushirish ──────────────────
     logger.info("Ma'lumotlar bazasi tayyorlanmoqda...")
     await init_db()
