@@ -62,8 +62,12 @@ class SubscriptionMiddleware(BaseMiddleware):
     @staticmethod
     async def _check_subscription(bot, user_id: int) -> bool:
         try:
+            # CHANNEL_ID ni to'g'ri chaqirish uchun config'dan import qiling
+            from config import CHANNEL_ID
             member = await bot.get_chat_member(chat_id=CHANNEL_ID, user_id=user_id)
-            return member.status not in ("left", "kicked", "restricted")
-        except TelegramBadRequest:
-            # Kanal topilmasa yoki bot admin bo'lmasa — o'tkazib yuboramiz
+            return member.status not in ("left", "kicked")
+        except Exception as e:
+            # Xatolik bo'lsa konsolga yozamiz
+            print(f"Obunani tekshirishda xatolik: {e}")
+            # Agar tekshira olmasa, foydalanuvchini bloklamaslik uchun True qaytaring (test uchun)
             return True
