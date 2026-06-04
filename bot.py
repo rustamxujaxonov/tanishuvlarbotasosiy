@@ -52,8 +52,8 @@ async def main():
     # Tartibi muhim: admin → premium → onboarding → search
     # ── Router larni ulash (eng to'g'ri tartib) ──────────
     dp.include_router(admin.router)
+    dp.include_router(onboarding.router)
     dp.include_router(search.router)
-    dp.include_router(onboarding.router) 
     dp.include_router(premium.router) 
     # ── Ma'lumotlar bazasini ishga tushirish ──────────────────
     logger.info("Ma'lumotlar bazasi tayyorlanmoqda...")
