@@ -32,39 +32,39 @@ logger = logging.getLogger(__name__)
 
 
 async def main():
-    # ── Token tekshirish ──────────────────────────────────────
     if not BOT_TOKEN:
         logger.error("BOT_TOKEN muhit o'zgaruvchisi topilmadi!")
         sys.exit(1)
 
-    # ── Bot va Dispatcher ─────────────────────────────────────
     bot = Bot(
         token=BOT_TOKEN,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     dp = Dispatcher(storage=MemoryStorage())
 
-    # ── Middleware ────────────────────────────────────────────
+    # Middleware
     dp.message.middleware(SubscriptionMiddleware())
     dp.callback_query.middleware(SubscriptionMiddleware())
 
-    # ── Router larni ulash ────────────────────────────────────
-    # Tartibi muhim: admin → premium → onboarding → search
-    # ── Router larni ulash (eng to'g'ri tartib) ──────────
+    # Routerlar
     dp.include_router(admin.router)
-    dp.include_router(onboarding.router)   # onboarding
+    dp.include_router(onboarding.router)
     dp.include_router(premium.router)
-    dp.include_router(search.router)       # search oxirida
-    # ── Ma'lumotlar bazasini ishga tushirish ──────────────────
+    dp.include_router(search.router)
+
+    # DB
     logger.info("Ma'lumotlar bazasi tayyorlanmoqda...")
     await init_db()
     logger.info("DB tayyor.")
 
-    # ── Botni ishga tushirish ─────────────────────────────────
+    # Webhook ni tozalash (ikkita marta)
     logger.info("Bot ishga tushmoqda...")
+    await bot.delete_webhook(drop_pending_updates=True)
+    await asyncio.sleep(1)  # qo'shimcha kutish
     await bot.delete_webhook(drop_pending_updates=True)
 
     try:
+        logger.info("Polling boshlandi...")
         await dp.start_polling(bot)
     finally:
         await bot.session.close()
