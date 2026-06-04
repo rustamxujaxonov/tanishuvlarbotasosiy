@@ -50,11 +50,10 @@ async def main():
 
     # ── Router larni ulash ────────────────────────────────────
     # Tartibi muhim: admin → premium → onboarding → search
-    dp.include_router(admin.router)
-    dp.include_router(premium.router)
-    dp.include_router(onboarding.router)
     dp.include_router(search.router)
-
+    dp.include_router(onboarding.router)
+    dp.include_router(premium.router)
+    dp.include_router(admin.router)
     # ── Ma'lumotlar bazasini ishga tushirish ──────────────────
     logger.info("Ma'lumotlar bazasi tayyorlanmoqda...")
     await init_db()
