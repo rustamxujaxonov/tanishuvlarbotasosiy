@@ -34,7 +34,15 @@ def main_menu(is_premium: bool = False) -> ReplyKeyboardMarkup:
     kb.button(text="⭐ Premium")
     kb.button(text="👤 Profilim")
     kb.button(text="⚙️ Sozlamalar")
-    kb.adjust(1 if not is_premium else 1, 2 if is_premium else 1, 2)
+    
+    # Soddalashtirilgan layout:
+    # Oddiy foydalanuvchi: Qidiruv (1), Premium (1), Profil (1), Sozlamalar (1)
+    # Premium foydalanuvchi: Qidiruv (1), Qiz/O'g'il (2), Qolganlari (3)
+    if is_premium:
+        kb.adjust(1, 2, 3) 
+    else:
+        kb.adjust(1, 1, 1, 1)
+        
     return kb.as_markup(resize_keyboard=True)
 
 
