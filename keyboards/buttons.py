@@ -27,22 +27,23 @@ def region_keyboard() -> ReplyKeyboardMarkup:
 # ─── Asosiy menyu ─────────────────────────────────────────────
 def main_menu(is_premium: bool = False) -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
+    
     kb.button(text="🔍 Muloqotchi qidirish")
+    
     if is_premium:
         kb.button(text="👧 Qiz bola qidirish")
         kb.button(text="👦 O'g'il bola qidirish")
+    
     kb.button(text="⭐ Premium")
     kb.button(text="👤 Profilim")
     kb.button(text="⚙️ Sozlamalar")
-    
-    # Soddalashtirilgan layout:
-    # Oddiy foydalanuvchi: Qidiruv (1), Premium (1), Profil (1), Sozlamalar (1)
-    # Premium foydalanuvchi: Qidiruv (1), Qiz/O'g'il (2), Qolganlari (3)
+
+    # To'g'ri adjust
     if is_premium:
-        kb.adjust(1, 2, 3) 
+        kb.adjust(1, 2, 1, 1)   # Qidiruv | Qiz/O'g'il | Premium | Profil | Sozlamalar
     else:
-        kb.adjust(1, 1, 1, 1)
-        
+        kb.adjust(1, 1, 1, 1)   # 4 ta tugma, har biri alohida qatorda
+
     return kb.as_markup(resize_keyboard=True)
 
 
